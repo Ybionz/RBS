@@ -8,6 +8,7 @@ Node::Node(int a, int b, bool isWall)
 };
 
 void Node::makeWall() { type = Wall; };
+void Node::makeFreeSpace() { type = Free_space; };
 
 void Node::print()
 {
@@ -25,6 +26,23 @@ bool Node::operator<(const Node &o) const
         return false;
     }
     if (y < o.y)
+    {
+        return true;
+    }
+
+    return false;
+};
+bool Node::operator>(const Node &o) const
+{
+    if (x > o.x)
+    {
+        return true;
+    }
+    else if (x < o.x)
+    {
+        return false;
+    }
+    if (y > o.y)
     {
         return true;
     }

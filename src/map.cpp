@@ -51,16 +51,41 @@ bool Map::setWall(int x, int y)
     getNode(x, y)->makeWall();
     return true;
 };
+bool Map::setFreeSpace(int x, int y)
+{
+    if (getNode(x, y)->getType() == Node::SpaceType::Free_space)
+    {
+        return false;
+    }
+    getNode(x, y)->makeFreeSpace();
+    return true;
+};
 
 bool Map::printMap()
 {
+    // Node a{rows, cols};
+    return printMap(Node(rows, cols));
+}
+
+bool Map::printMap(Node initial, std::list<Action> path)
+{
+    auto it = path.begin();
+    it++; // because first action is wait
+    Node *current{getNode(initial.getX(), initial.getY())};
+
     for (int i{0}; i < rows; ++i)
     {
         for (int j{0}; j < cols; ++j)
         {
             if (getNode(j, i)->getType() == Node::SpaceType::Wall)
             {
-                std::cout << "+";
+                std::cout << char(0xdb);
+            }
+            else if (path.size() > 0 && *getNode(j, i) == *current)
+            {
+                std::cout << "x";
+                current = current + *it;
+                it++;
             }
             else
             {

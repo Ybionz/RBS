@@ -10,6 +10,7 @@ class Node
 public:
     Node(int a = 0, int b = 0, bool isWall = false);
     void makeWall();
+    void makeFreeSpace();
     enum SpaceType
     {
         Wall,
@@ -24,6 +25,7 @@ public:
     bool operator==(const Node &o) { return (x == o.x && y == o.y); }
 
     bool operator<(const Node &o) const;
+    bool operator>(const Node &o) const;
 
     Node operator+(const Action &action) const;
     friend Node operator+(const Node &n, const Action &action);

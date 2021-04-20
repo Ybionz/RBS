@@ -23,8 +23,11 @@ public:
     void setWalls(double wallDensity);
 
     bool setWall(int x, int y);
+    bool setFreeSpace(int x, int y);
 
     bool printMap();
+
+    bool printMap(Node initial, std::list<Action> path = std::list<Action>());
 
     bool isInMap(int x, int y);
     bool isInMap(Node *n);

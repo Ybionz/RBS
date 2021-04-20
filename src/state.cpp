@@ -65,7 +65,7 @@ std::list<Action> State::getPath()
     std::list<Action> temp;
     temp.push_front(action);
     const State *n = m_parent;
-    while (n->g > 0.9)
+    while (n != nullptr)
     {
         temp.push_front(n->action);
         n = n->m_parent;
