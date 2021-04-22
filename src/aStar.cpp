@@ -38,6 +38,11 @@ std::list<Action> AStar::search()
         {
             return false;
         }
+        // if (a->g < b->g)
+        //     return true;
+        // else if (a->g > b->g)
+        //     return false;
+
         if (a->action < b->action)
         {
             return true;
@@ -51,11 +56,12 @@ std::list<Action> AStar::search()
     State initial{start, goal, map};
     open.insert(&initial);
     visited.insert(&initial);
+    State *nextState;
 
     while (!open.empty())
     {
 
-        State *nextState = open.extract(open.begin()).value();
+        nextState = open.extract(open.begin()).value();
         closed.insert(nextState);
 
         if (nextState->atGoal())
@@ -71,7 +77,10 @@ std::list<Action> AStar::search()
                 open.insert(s);
             }
         };
+        if (visited.size() > 500000)
+            break;
     };
+
     std::list<Action> failed{};
     return failed;
 };

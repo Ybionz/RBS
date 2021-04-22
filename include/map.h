@@ -21,6 +21,7 @@ public:
 
     void initializeNodes(int rows, int cols);
     void initializeAllActions();
+    void initializeAreas();
 
     void setWalls(double wallDensity);
     bool setWall(int x, int y);
@@ -34,24 +35,35 @@ public:
 
     void findNeighbours();
 
-    std::set<Action> getAllActions() { return allActions; };
-
     Node *getNode(int x, int y) { return *nodes.find(new Node(x, y)); };
     Node *getNode(Node *n) { return *nodes.find(n); };
     // Node getNodeP(int x, int y) { return nodes.find(Node(x, y)); };
 
     std::set<std::pair<Action, Node *>> getNeighbours(Node *n);
+    std::pair<Node *, Node *> getValidTask();
+    int getNumAreas() { return numAreas; };
+    std::set<Action> getAllActions() { return allActions; };
 
     double dist(Node n1, Node n2);
 
+    bool isTaskValid(Node *start, Node *end);
+
+    std::set<std::pair<Action, Node *>> _getNeighbours(Node *n);
+
+    void newMap();
+
+    std::map<Node *, int> areas{};
+
+    std::set<Node *, decltype([](Node *a, Node *b) { return (*a < *b); })> nodes;
 private:
     int rows;
     int cols;
+    double wallDensity;
     std::mt19937 mersenne;
     std::map<Node *, std::set<std::pair<Action, Node *>>> neighbours;
-    std::set<std::pair<Action, Node *>> _getNeighbours(Node *n);
-    std::set<Node *, decltype([](Node *a, Node *b) { return (*a < *b); })> nodes;
     std::set<Action> allActions;
+
+    int numAreas{1};
     // std::vector<std::vector<Node>> nodes;
 };
 

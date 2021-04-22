@@ -27,18 +27,21 @@ State::State(const State &parent, Action action)
 bool State::operator<(const State &o) const
 {
     if (f < o.f)
-    {
         return true;
-    }
     else if (f > o.f)
-    {
         return false;
-    }
+
     if (h < o.h)
-    {
         return true;
-    }
-    return action.dir < o.action.dir;
+    else if (h > o.h)
+        return false;
+
+    if (action < o.action)
+        return true;
+    else if (action > o.action)
+        return false;
+
+    return currentNode < o.currentNode;
 };
 
 bool State::atGoal()
@@ -49,11 +52,11 @@ bool State::atGoal()
 std::set<State *> State::getChildStates(std::set<ActionConstraint> constraints)
 {
     std::set<State *> children;
-    for (auto [a,n] : (*map).getNeighbours(currentNode))
+    for (auto [a, n] : (*map).getNeighbours(currentNode))
     {
         bool actionPermitted{constraints.find(ActionConstraint(a, static_cast<int>(g), currentNode)) == constraints.end()};
-        bool notWall{map->getNode(n)->getType() != Node::SpaceType::Wall};
-        if (actionPermitted && notWall)
+        // bool notWall{map->getNode(n)->getType() != Node::SpaceType::Wall};
+        if (actionPermitted)
         {
             State *child = new State{*this, a};
             children.insert(child);
@@ -73,4 +76,11 @@ std::list<Action> State::getPath()
         n = n->m_parent;
     };
     return temp;
+}
+
+std::ostream &operator<<(std::ostream &out, const State &s)
+{
+    out << "currentNode: " << *s.currentNode << ", action:" << s.action << ", g=" << s.g << ", h=" << s.h << ", f=" << s.f << '\n';
+
+    return out;
 }

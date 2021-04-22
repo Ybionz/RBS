@@ -3,12 +3,14 @@
 Map::Map(int a, int b, double wallDensity)
     : cols{a},
       rows{b},
+      wallDensity{wallDensity},
       mersenne{static_cast<std::mt19937::result_type>(std::time(nullptr))}
 {
     initializeNodes(rows, cols);
     setWalls(wallDensity);
     initializeAllActions();
     findNeighbours();
+    initializeAreas();
 };
 
 void Map::initializeNodes(int rows, int cols)
@@ -69,9 +71,16 @@ bool Map::printMap()
 
 bool Map::printMap(Node initial, std::list<Action> path)
 {
-    auto it = path.begin();
-    it++; // because first action is wait
-    Node *current{getNode(initial.getX(), initial.getY())};
+    // auto it = path.begin();
+    // it++; // because first action is wait
+    // Node current{*getNode(initial.getX(), initial.getY())};
+    std::set<Node> pathNodes{initial};
+    Node current{initial};
+    for (auto const &a : path)
+    {
+        current = current + a;
+        pathNodes.insert(current);
+    }
 
     for (int i{0}; i < rows; ++i)
     {
@@ -81,11 +90,9 @@ bool Map::printMap(Node initial, std::list<Action> path)
             {
                 std::cout << char(0xdb);
             }
-            else if (path.size() > 0 && *getNode(j, i) == *current)
+            else if (pathNodes.contains(*getNode(j, i)))
             {
                 std::cout << "x";
-                current = current + *it;
-                it++;
             }
             else
             {
@@ -111,9 +118,10 @@ std::set<std::pair<Action, Node *>> Map::_getNeighbours(Node *n)
     int y{n->getY()};
     for (Action a : allActions)
     {
-        if (isInMap(n + a))
+        Node *neigh = n + a;
+        if (isInMap(neigh) && getNode(neigh)->getType() != Node::SpaceType::Wall)
         {
-            neighbours.insert(std::pair<Action, Node *>{a, n + a});
+            neighbours.insert(std::pair<Action, Node *>{a, neigh});
         }
     }
 
@@ -127,7 +135,7 @@ std::set<std::pair<Action, Node *>> Map::getNeighbours(Node *n)
 
 void Map::findNeighbours()
 {
-
+    neighbours.clear();
     for (int i{0}; i < cols; i++)
     {
         for (int j{0}; j < rows; j++)
@@ -152,3 +160,80 @@ void Map::initializeAllActions()
     }
 };
 
+void Map::initializeAreas()
+{
+    areas.clear();
+    std::set<Node> nodesLeft;
+    for (auto n : nodes)
+    {
+        nodesLeft.insert(*n);
+    }
+    int i{1};
+    Node n;
+    while (!nodesLeft.empty())
+    {
+        n = *nodesLeft.begin();
+        nodesLeft.extract(n);
+        if (n.getType() == Node::SpaceType::Wall)
+        {
+            areas[getNode(&n)] = 0;
+            continue;
+        }
+        // std::set<Node *, decltype([](Node *a, Node *b) { return (*a < *b); })> open;
+        // std::set<Node *, decltype([](Node *a, Node *b) { return (*a < *b); })> closed;
+        std::set<Node> open;
+        std::set<Node> closed;
+        open.insert(n);
+        Node nextNode;
+        while (!open.empty())
+        {
+            nextNode = open.extract(open.begin()).value();
+            nodesLeft.extract(nextNode);
+            areas[getNode(&nextNode)] = i;
+            for (auto [a, neighbour] : getNeighbours(&nextNode))
+            {
+                if (nodesLeft.contains(*neighbour))
+                {
+                    open.insert(*neighbour);
+                }
+            }
+        }
+        ++i;
+    }
+    numAreas = i;
+}
+
+bool Map::isTaskValid(Node *start, Node *end)
+{
+    return areas[getNode(start)] == areas[getNode(end)] && start->getType() != Node::SpaceType::Wall && *start != *end;
+}
+
+std::pair<Node *, Node *> Map::getValidTask()
+{
+    std::uniform_int_distribution randomX{0, cols - 1};
+    std::uniform_int_distribution randomY{0, rows - 1};
+    while (true)
+    {
+        int xStart = randomX(mersenne);
+        int yStart = randomY(mersenne);
+        int xEnd = randomX(mersenne);
+        int yEnd = randomY(mersenne);
+        Node *start{getNode(xStart, yStart)};
+        Node *end{getNode(xEnd, yEnd)};
+        if (isTaskValid(start, end))
+        {
+            return std::pair<Node *, Node *>{start, end};
+        }
+    }
+}
+
+void Map::newMap()
+{
+    for (Node *n : nodes)
+    {
+        n->makeFreeSpace();
+    }
+    setWalls(wallDensity);
+    findNeighbours();
+    initializeAreas();
+}

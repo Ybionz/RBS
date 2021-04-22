@@ -59,11 +59,35 @@
 
 int main()
 {
-    int n{3};
-    Map m(n, n, 0.0);
-    m.setFreeSpace(n - 1, n - 1);
-    m.setFreeSpace(0, 0);
-    AStar aStar{AStar(m.getNode(0, 0), m.getNode(n - 1, n - 1), &m, std::set<ActionConstraint>{})};
+    int n{4};
+    Map m(n, n, 0.3);
+    // AStar aStar;
+    while (true)
+    {
+        // std::cout << "Map has numAreas = " << m.getNumAreas() << '\n';
+        m.newMap();
+        auto task{m.getValidTask()};
+        // AStar aStar{AStar(m.getNode(0, 0), m.getNode(n - 1, n - 1), &m, std::set<ActionConstraint>{})};
+        // aStar = AStar(task.first, task.second, &m, std::set<ActionConstraint>{});
+        std::list<Action> path{AStar(task.first, task.second, &m, std::set<ActionConstraint>{}).search()};
+        std::cout << "Path of size " << path.size() << '\n';
+        if (path.size() < 1)
+        {
+            m.printMap();
+            std::cout << "Start at " << *task.first << " and goal at " << *task.second << '\n';
+            std::cout << "Start area " << m.areas[m.getNode(task.first)] << " and goal area " << m.areas[task.second] << '\n';
+            for (Node *node : m.nodes)
+            {
+                std::cout << *node << " has the neightbours: ";
+                for (auto [a, neigh] : m.getNeighbours(node))
+                {
+                    std::cout << *neigh << ", ";
+                }
+                std::cout << '\n';
+            }
+            break;
+        }
+    }
 
     // for (auto p : m.getNeighbours(m.getNode(0, 1)))
     // {
@@ -78,20 +102,20 @@ int main()
     // ActionConstraint constraint3{Action{Action::Direction::south}, 2, m.getNode(1, 1)};
 
     // AStar aStar{AStar(m.getNode(0, 0), m.getNode(0, 2), &m, std::set<ActionConstraint>{constraint1, constraint2, constraint3})};
-    std::list<Action> path{aStar.search()};
+    // std::list<Action> path{aStar.search()};
 
-    if (path.size() > 0)
-    {
-        m.printMap(*m.getNode(0, 0), path);
-    }
-    else
-    {
-        m.printMap();
-    }
-    for (auto a : path)
-    {
-        std::cout << a << '\n';
-    };
+    // if (path.size() > 0)
+    // {
+    //     m.printMap(*m.getNode(task.first), path);
+    // }
+    // else
+    // {
+    //     m.printMap();
+    // }
+    // for (auto a : path)
+    // {
+    //     std::cout << a << '\n';
+    // };
 
     return 0;
 }

@@ -18,6 +18,7 @@ public:
     State(const State &parent, Action action);
 
     std::set<State *> getChildStates(std::set<ActionConstraint> constraints);
+    friend std::ostream &operator<<(std::ostream &out, const State &n);
 
     bool operator<(const State &o) const;
 

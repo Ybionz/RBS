@@ -23,6 +23,7 @@ public:
     SpaceType getType() { return type; };
 
     bool operator==(const Node &o) { return (x == o.x && y == o.y); }
+    bool operator!=(const Node &o) { return !(*this == o); }
 
     bool operator<(const Node &o) const;
     bool operator>(const Node &o) const;
