@@ -7,8 +7,8 @@ Map::Map(int a, int b, double wallDensity)
 {
     initializeNodes(rows, cols);
     setWalls(wallDensity);
-    findNeighbours();
     initializeAllActions();
+    findNeighbours();
 };
 
 void Map::initializeNodes(int rows, int cols)
@@ -104,34 +104,25 @@ bool Map::isInMap(int x, int y)
 
 bool Map::isInMap(Node *n) { return Map::isInMap(n->getX(), n->getY()); };
 
-std::set<Node *> Map::_getNeighbours(Node *n)
+std::set<std::pair<Action, Node *>> Map::_getNeighbours(Node *n)
 {
-    std::set<Node *> neighbours{};
+    std::set<std::pair<Action, Node *>> neighbours{};
     int x{n->getX()};
     int y{n->getY()};
-    if (isInMap(x - 1, y))
+    for (Action a : allActions)
     {
-        neighbours.insert(getNode(x - 1, y));
-    }
-    if (isInMap(x, y - 1))
-    {
-        neighbours.insert(getNode(x, y - 1));
-    }
-    if (isInMap(x + 1, y))
-    {
-        neighbours.insert(getNode(x + 1, y));
-    }
-    if (isInMap(x, y + 1))
-    {
-        neighbours.insert(getNode(x, y + 1));
+        if (isInMap(n + a))
+        {
+            neighbours.insert(std::pair<Action, Node *>{a, n + a});
+        }
     }
 
     return neighbours;
 };
 
-std::set<Node *> Map::getNeighbours(Node *n)
+std::set<std::pair<Action, Node *>> Map::getNeighbours(Node *n)
 {
-    return neighbours[n];
+    return neighbours[getNode(n)];
 };
 
 void Map::findNeighbours()
@@ -160,3 +151,4 @@ void Map::initializeAllActions()
         allActions.insert(Action(static_cast<Action::Direction>(i)));
     }
 };
+

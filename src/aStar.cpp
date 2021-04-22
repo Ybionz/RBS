@@ -62,7 +62,7 @@ std::list<Action> AStar::search()
         {
             return nextState->getPath();
         };
-        
+
         for (State *s : nextState->getChildStates(constraints))
         {
             if (visited.find(s) == visited.end())

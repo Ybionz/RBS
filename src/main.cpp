@@ -59,19 +59,25 @@
 
 int main()
 {
-    // int n{3};
-    // Map m(n, n, 0.2);
-    // m.setFreeSpace(n - 1, n - 1);
-    // m.setFreeSpace(0, 0);
-    // AStar aStar{AStar(m.getNode(0, 0), m.getNode(n - 1, n - 1), &m,std::set<ActionConstraint>{})};
+    int n{3};
+    Map m(n, n, 0.0);
+    m.setFreeSpace(n - 1, n - 1);
+    m.setFreeSpace(0, 0);
+    AStar aStar{AStar(m.getNode(0, 0), m.getNode(n - 1, n - 1), &m, std::set<ActionConstraint>{})};
 
-    Map m(3, 3, 0.0);
-    // m.setWall(0, 1);
-    ActionConstraint constraint1{Action{Action::Direction::south}, 0, m.getNode(0, 0)};
-    ActionConstraint constraint2{Action{Action::Direction::south}, 1, m.getNode(1, 1)};
-    ActionConstraint constraint3{Action{Action::Direction::south}, 2, m.getNode(1, 1)};
+    // for (auto p : m.getNeighbours(m.getNode(0, 1)))
+    // {
+    //     std::cout << "action is " << p.first << '\n';
+    //     std::cout << "node is " << *p.second << '\n';
+    // }
 
-    AStar aStar{AStar(m.getNode(0, 0), m.getNode(0, 2), &m, std::set<ActionConstraint>{constraint1, constraint2, constraint3})};
+    // Map m(3, 3, 0.0);
+    // // m.setWall(0, 1);
+    // ActionConstraint constraint1{Action{Action::Direction::south}, 0, m.getNode(0, 0)};
+    // ActionConstraint constraint2{Action{Action::Direction::south}, 1, m.getNode(1, 1)};
+    // ActionConstraint constraint3{Action{Action::Direction::south}, 2, m.getNode(1, 1)};
+
+    // AStar aStar{AStar(m.getNode(0, 0), m.getNode(0, 2), &m, std::set<ActionConstraint>{constraint1, constraint2, constraint3})};
     std::list<Action> path{aStar.search()};
 
     if (path.size() > 0)

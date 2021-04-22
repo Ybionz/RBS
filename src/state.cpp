@@ -49,12 +49,10 @@ bool State::atGoal()
 std::set<State *> State::getChildStates(std::set<ActionConstraint> constraints)
 {
     std::set<State *> children;
-    for (Action a : (*map).getAllActions())
+    for (auto [a,n] : (*map).getNeighbours(currentNode))
     {
-        if (!(*map).isInMap(currentNode + a))
-            continue;
         bool actionPermitted{constraints.find(ActionConstraint(a, static_cast<int>(g), currentNode)) == constraints.end()};
-        bool notWall{map->getNode(currentNode + a)->getType() != Node::SpaceType::Wall};
+        bool notWall{map->getNode(n)->getType() != Node::SpaceType::Wall};
         if (actionPermitted && notWall)
         {
             State *child = new State{*this, a};
