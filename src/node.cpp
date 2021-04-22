@@ -34,20 +34,7 @@ bool Node::operator<(const Node &o) const
 };
 bool Node::operator>(const Node &o) const
 {
-    if (x > o.x)
-    {
-        return true;
-    }
-    else if (x < o.x)
-    {
-        return false;
-    }
-    if (y > o.y)
-    {
-        return true;
-    }
-
-    return false;
+    return o < *this;
 };
 
 Node Node::operator+(const Action &action) const

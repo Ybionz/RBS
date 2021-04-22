@@ -7,6 +7,7 @@
 #include "node.h"
 #include "map.h"
 #include "action.h"
+#include "actionConstraint.h"
 
 class State
 {
@@ -15,7 +16,7 @@ public:
 
     State(const State &parent, Action action);
 
-    std::set<State *> getChildStates();
+    std::set<State *> getChildStates(std::set<ActionConstraint> constraints);
 
     bool operator<(const State &o) const;
 

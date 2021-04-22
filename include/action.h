@@ -24,6 +24,7 @@ public:
     friend std::ostream &operator<<(std::ostream &out, const Action &action);
 
     bool operator<(const Action &o) const;
+    bool operator>(const Action &o) const;
 };
 
 #endif

@@ -1,10 +1,11 @@
 #include "aStar.h"
 
-AStar::AStar(Node *startNode, Node *goalNode, Map *m)
+AStar::AStar(Node *startNode, Node *goalNode, Map *m, std::set<ActionConstraint> constraints)
     : start{startNode},
       goal{goalNode},
       map{m},
-      visitedCompare(getVisitedCompare()){};
+      constraints{constraints},
+      visitedCompare{getVisitedCompare()} {};
 
 std::function<bool(State *, State *)> AStar::getVisitedCompare()
 {
@@ -28,7 +29,6 @@ std::function<bool(State *, State *)> AStar::getVisitedCompare()
 
 std::list<Action> AStar::search()
 {
-    State initial{start, goal, map};
     auto visitedCompare{[](State *a, State *b) {
         if (*a->currentNode < *b->currentNode)
         {
@@ -38,7 +38,7 @@ std::list<Action> AStar::search()
         {
             return false;
         }
-        if (a->action.dir < b->action.dir)
+        if (a->action < b->action)
         {
             return true;
         }
@@ -47,8 +47,11 @@ std::list<Action> AStar::search()
     std::set<State *, decltype(visitedCompare)> visited;
     std::set<State *, decltype([](State *a, State *b) { return (*a < *b); })> open;
     std::set<State *, decltype([](State *a, State *b) { return (*a < *b); })> closed;
+
+    State initial{start, goal, map};
     open.insert(&initial);
     visited.insert(&initial);
+
     while (!open.empty())
     {
 
@@ -59,9 +62,10 @@ std::list<Action> AStar::search()
         {
             return nextState->getPath();
         };
-        for (State *s : nextState->getChildStates())
+        
+        for (State *s : nextState->getChildStates(constraints))
         {
-            if (visited.find(s)==visited.end())
+            if (visited.find(s) == visited.end())
             {
                 visited.insert(s);
                 open.insert(s);

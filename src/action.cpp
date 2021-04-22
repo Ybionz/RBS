@@ -31,3 +31,5 @@ bool Action::operator<(const Action &o) const
 {
     return dir < o.dir;
 };
+
+bool Action::operator>(const Action &o) const { return o < *this; }

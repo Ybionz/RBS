@@ -46,12 +46,16 @@ bool State::atGoal()
     return isGoal;
 };
 
-std::set<State *> State::getChildStates()
+std::set<State *> State::getChildStates(std::set<ActionConstraint> constraints)
 {
     std::set<State *> children;
     for (Action a : (*map).getAllActions())
     {
-        if ((*map).isInMap(currentNode + a) && map->getNode(currentNode + a)->getType() != Node::SpaceType::Wall)
+        if (!(*map).isInMap(currentNode + a))
+            continue;
+        bool actionPermitted{constraints.find(ActionConstraint(a, static_cast<int>(g), currentNode)) == constraints.end()};
+        bool notWall{map->getNode(currentNode + a)->getType() != Node::SpaceType::Wall};
+        if (actionPermitted && notWall)
         {
             State *child = new State{*this, a};
             children.insert(child);
