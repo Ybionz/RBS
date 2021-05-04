@@ -41,6 +41,8 @@ public:
 
     std::set<std::pair<Action, Node *>> getNeighbours(Node *n);
     std::pair<Node *, Node *> getValidTask();
+    std::pair<Node *, Node *> getTask(int agent) { return tasks[agent]; };
+    std::map<int, std::pair<Node *, Node *>> getValidTasks(int n);
     int getNumAreas() { return numAreas; };
     std::set<Action> getAllActions() { return allActions; };
 
@@ -55,6 +57,7 @@ public:
     std::map<Node *, int> areas{};
 
     std::set<Node *, decltype([](Node *a, Node *b) { return (*a < *b); })> nodes;
+
 private:
     int rows;
     int cols;
@@ -62,6 +65,9 @@ private:
     std::mt19937 mersenne;
     std::map<Node *, std::set<std::pair<Action, Node *>>> neighbours;
     std::set<Action> allActions;
+    std::map<int, std::pair<Node *, Node *>> tasks;
+    std::set<Node *, decltype([](Node *a, Node *b) { return (*a < *b); })> initialPos;
+    std::set<Node *, decltype([](Node *a, Node *b) { return (*a < *b); })> endPos;
 
     int numAreas{1};
     // std::vector<std::vector<Node>> nodes;

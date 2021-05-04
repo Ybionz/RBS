@@ -8,11 +8,11 @@ class Action
 public:
     enum Direction
     {
+        east,
         north,
         south,
-        west,
-        east,
         wait,
+        west,
         Last
     };
     Action(Action::Direction dir) : dir{dir} {};
@@ -20,6 +20,9 @@ public:
     Direction getDir() { return dir; };
 
     Direction dir;
+
+    Action opposite() const ;
+    // const Action opposite();
 
     friend std::ostream &operator<<(std::ostream &out, const Action &action);
 

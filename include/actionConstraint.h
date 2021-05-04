@@ -12,6 +12,8 @@ public:
     bool operator<(const ActionConstraint &o) const;
     bool operator>(const ActionConstraint &o) const { return o < *this; };
 
+    friend std::ostream &operator<<(std::ostream &out, const ActionConstraint &n);
+
     Action action;
     int t;
     Node *v;

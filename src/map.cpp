@@ -154,7 +154,7 @@ double Map::dist(Node n1, Node n2)
 
 void Map::initializeAllActions()
 {
-    for (int i = Action::Direction::north; i != Action::Direction::Last; ++i)
+    for (int i = Action::Direction::east; i != Action::Direction::Last; ++i)
     {
         allActions.insert(Action(static_cast<Action::Direction>(i)));
     }
@@ -205,7 +205,8 @@ void Map::initializeAreas()
 
 bool Map::isTaskValid(Node *start, Node *end)
 {
-    return areas[getNode(start)] == areas[getNode(end)] && start->getType() != Node::SpaceType::Wall && *start != *end;
+    if (!initialPos.contains(start) && !endPos.contains(end))
+        return areas[getNode(start)] == areas[getNode(end)] && start->getType() != Node::SpaceType::Wall && *start != *end;
 }
 
 std::pair<Node *, Node *> Map::getValidTask()
@@ -222,9 +223,24 @@ std::pair<Node *, Node *> Map::getValidTask()
         Node *end{getNode(xEnd, yEnd)};
         if (isTaskValid(start, end))
         {
+            initialPos.insert(start);
+            endPos.insert(end);
             return std::pair<Node *, Node *>{start, end};
         }
     }
+}
+
+std::map<int, std::pair<Node *, Node *>> Map::getValidTasks(int n)
+{
+    // std::map<int, std::pair<Node *, Node *>> temp;
+    tasks.clear();
+    initialPos.clear();
+    endPos.clear();
+    for (int i{0}; i < n; ++i)
+    {
+        tasks[i] = getValidTask();
+    }
+    return tasks;
 }
 
 void Map::newMap()

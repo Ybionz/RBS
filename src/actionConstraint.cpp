@@ -21,4 +21,11 @@ bool ActionConstraint::operator<(const ActionConstraint &o) const
     return true;
 
   return false;
-}
+};
+
+std::ostream &operator<<(std::ostream &out, const ActionConstraint &a)
+{
+  out << "ActionConstraint(t=" << a.t << ", v=" << *a.v << ", action=" << a.action << ")";
+
+  return out;
+};

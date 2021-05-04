@@ -1,10 +1,11 @@
 #include "state.h"
 
-State::State(Node *initial, Node *goal, Map *map)
-    : initialNode{initial},
+State::State(Node *initial, Node *goal, int agent, Map *map)
+    : map{map},
+      initialNode{initial},
       currentNode{initial},
       goalNode{goal},
-      map{map},
+      agent{agent},
       g{0},
       h{(*map).dist(*initial, *goal)},
       f{g + h},
@@ -14,15 +15,20 @@ State::State(Node *initial, Node *goal, Map *map)
 
 State::State(const State &parent, Action action)
     : map{parent.map},
-      currentNode{map->getNode(parent.currentNode) + action},
+      currentNode{map->getNode(parent.currentNode + action)},
       initialNode{parent.initialNode},
       goalNode{parent.goalNode},
+      agent{parent.agent},
       g{parent.g + 1.0},
       h{(*parent.map).dist(*currentNode, *goalNode)},
       f{g + h},
       action{action},
       isGoal{*currentNode == *goalNode},
       m_parent{&parent} {};
+
+State::State(Node *current, const Action action)
+    : currentNode{current},
+      action{action} {};
 
 bool State::operator<(const State &o) const
 {
@@ -65,13 +71,36 @@ std::set<State *> State::getChildStates(std::set<ActionConstraint> constraints)
     return children;
 };
 
-std::list<Action> State::getPath()
+path_t State::getPath() const
+{
+
+    if (m_parent == nullptr)
+    {
+        return path_t{this};
+    }
+    auto list = m_parent->getPath();
+    list.push_back(this);
+    return list;
+    // std::list<const State *> temp;
+    // temp.push_front(this);
+    // const State *n = m_parent;
+    // while (n != nullptr)
+    // {
+    //     temp.push_front(n);
+    //     n = n->m_parent;
+    // };
+    // return temp;
+}
+
+std::list<Action> State::getPathActions() const
 {
     std::list<Action> temp;
-    temp.push_front(action);
+    const Action test{this->action};
+    temp.push_front(test);
     const State *n = m_parent;
     while (n != nullptr)
     {
+        bool testBool = n != NULL;
         temp.push_front(n->action);
         n = n->m_parent;
     };

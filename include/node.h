@@ -31,6 +31,7 @@ public:
     Node operator+(const Action &action) const;
     friend Node operator+(const Node &n, const Action &action);
     friend Node *operator+(Node *n, const Action &action);
+    friend Node *operator-(Node *n, const Action &action);
 
     friend std::ostream &operator<<(std::ostream &out, const Node &n);
 

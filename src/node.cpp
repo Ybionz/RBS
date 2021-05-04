@@ -101,6 +101,26 @@ Node *operator+(Node *n, const Action &action)
     }
 };
 
+Node *operator-(Node *n, const Action &action)
+{
+    switch (action.dir)
+    {
+    case Action::Direction::wait:
+        return new Node(n->x, n->y);
+    case Action::Direction::north:
+        return new Node(n->x, n->y + 1);
+    case Action::Direction::south:
+        return new Node(n->x, n->y - 1);
+    case Action::Direction::west:
+        return new Node(n->x + 1, n->y);
+    case Action::Direction::east:
+        return new Node(n->x - 1, n->y);
+
+    default:
+        return new Node(n->x, n->y);
+    }
+};
+
 std::ostream &operator<<(std::ostream &out, const Node &n)
 {
     out << "Node(" << n.x << ", " << n.y << ')';
