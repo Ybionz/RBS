@@ -28,7 +28,9 @@ State::State(const State &parent, Action action)
 
 State::State(Node *current, const Action action)
     : currentNode{current},
-      action{action} {};
+      action{action} {
+
+      };
 
 bool State::operator<(const State &o) const
 {
@@ -50,17 +52,25 @@ bool State::operator<(const State &o) const
     return currentNode < o.currentNode;
 };
 
-bool State::atGoal()
+bool State::atGoal(ACSet_t aCSet)
 {
+    if (!isGoal)
+        return isGoal;
+
+    if (aCSet.size() < 1)
+        return isGoal;
+
+    if (aCSet.rbegin()->t > g)
+        return false;
     return isGoal;
 };
 
-std::set<State *> State::getChildStates(std::set<ActionConstraint> constraints)
+std::set<State *> State::getChildStates(ACSet_t aCSet)
 {
     std::set<State *> children;
     for (auto [a, n] : (*map).getNeighbours(currentNode))
     {
-        bool actionPermitted{constraints.find(ActionConstraint(a, static_cast<int>(g), currentNode)) == constraints.end()};
+        bool actionPermitted{aCSet.find(ActionConstraint(a, static_cast<int>(g), currentNode)) == aCSet.end()};
         // bool notWall{map->getNode(n)->getType() != Node::SpaceType::Wall};
         if (actionPermitted)
         {
@@ -113,3 +123,8 @@ std::ostream &operator<<(std::ostream &out, const State &s)
 
     return out;
 }
+
+LightState State::getLS() const
+{
+    return LightState(currentNode, action, agent, g);
+};

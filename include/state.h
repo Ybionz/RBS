@@ -11,24 +11,28 @@
 #include "map.h"
 #include "action.h"
 #include "actionConstraint.h"
+#include "lightState.h"
 
 class State
 {
 public:
     State(Node *initialNode, Node *goalNode, int agent, Map *map);
     State(Node *current, Action action = Action::Direction::wait);
+    ~State(){};
 
     State(const State &parent, const Action action);
 
-    std::set<State *> getChildStates(std::set<ActionConstraint> constraints);
+    std::set<State *> getChildStates(ACSet_t constraints);
     friend std::ostream &operator<<(std::ostream &out, const State &n);
 
     bool operator<(const State &o) const;
 
-    bool atGoal();
+    bool atGoal(ACSet_t aCSet);
 
     path_t getPath() const;
     std::list<Action> getPathActions() const;
+
+    LightState getLS() const;
 
     Map *map;
     Node *currentNode;

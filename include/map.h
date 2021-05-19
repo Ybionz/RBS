@@ -2,26 +2,47 @@
 #define MAP_H
 
 #include <iostream>
-#include <vector>  // for std::vector
-#include <random>  // for std::mt19937
-#include <ctime>   // for std::time
-#include <list>    // for std::list
-#include <map>     // for std::map
-#include <set>     // for std::set
-#include <cmath>   // for std::sqrt
-#include <utility> // for std::pair
+#include <algorithm>  // for std::max
+#include <vector>     // for std::vector
+#include <random>     // for std::mt19937
+#include <ctime>      // for std::time
+#include <list>       // for std::list
+#include <map>        // for std::map
+#include <set>        // for std::set
+#include <cmath>      // for std::sqrt
+#include <utility>    // for std::pair
+#include <fstream>    // for std::ofstream
+#include <filesystem> // for std::filesystem
+#include <string>     // for std::string
 
+namespace fs = std::filesystem;
+
+#include "typeAliases.h"
 #include "node.h"
 #include "action.h"
+#include "state.h"
+#include "ruleRestrict.h"
 
 class Map
 {
+    struct Sorter
+    {
+        bool operator()(const Node *n1, const Node *n2) const
+        {
+            return *n1 < *n2;
+        }
+    };
+    // auto sort = [](Node *n1, Node *n2) -> bool {
+    //     return *n1 < *n2;
+    // };
+
 public:
-    Map(int a = 5, int b = 5, double wallDensity = 0.0);
+    Map(int a = 5, int b = 5, double wallDensity = 0.0, int _agents = 1);
 
     void initializeNodes(int rows, int cols);
     void initializeAllActions();
     void initializeAreas();
+    void setRules(std::set<RuleRestrict> _rulesRestrict);
 
     void setWalls(double wallDensity);
     bool setWall(int x, int y);
@@ -40,36 +61,45 @@ public:
     // Node getNodeP(int x, int y) { return nodes.find(Node(x, y)); };
 
     std::set<std::pair<Action, Node *>> getNeighbours(Node *n);
-    std::pair<Node *, Node *> getValidTask();
-    std::pair<Node *, Node *> getTask(int agent) { return tasks[agent]; };
-    std::map<int, std::pair<Node *, Node *>> getValidTasks(int n);
     int getNumAreas() { return numAreas; };
     std::set<Action> getAllActions() { return allActions; };
 
     double dist(Node n1, Node n2);
+    int distMoves(Node n1, Node n2);
 
-    bool isTaskValid(Node *start, Node *end);
+    bool isMissionValid(Node *start, Node *end);
+    mission_t getMission(agentID_t agent) { return missions[agent]; };
+    missions_t getMissions(std::set<agentID_t> agentSet);
+    missions_t getMissions(agentID_t lastAgent);
+    std::pair<Node *, Node *> getValidMission();
+    missions_t getValidMissions(int n);
+    bool doesMissionsFollowRules();
+    void setMissions(missions_t _missions);
 
-    std::set<std::pair<Action, Node *>> _getNeighbours(Node *n);
+    std::set<Node *, Sorter> getNodes() { return nodes; };
 
     void newMap();
 
     std::map<Node *, int> areas{};
 
-    std::set<Node *, decltype([](Node *a, Node *b) { return (*a < *b); })> nodes;
+    void saveLevel(std::string name, paths_t paths = paths_t{});
 
 private:
     int rows;
     int cols;
     double wallDensity;
     std::mt19937 mersenne;
+    int agents;
     std::map<Node *, std::set<std::pair<Action, Node *>>> neighbours;
     std::set<Action> allActions;
-    std::map<int, std::pair<Node *, Node *>> tasks;
-    std::set<Node *, decltype([](Node *a, Node *b) { return (*a < *b); })> initialPos;
-    std::set<Node *, decltype([](Node *a, Node *b) { return (*a < *b); })> endPos;
+    missions_t missions;
+    std::set<Node *, Sorter> initialPos;
+    std::set<Node *, Sorter> endPos;
+    std::set<Node *, Sorter> nodes;
+    std::set<RuleRestrict> rulesRestrict;
 
     int numAreas{1};
+    std::set<std::pair<Action, Node *>> _getNeighbours(Node *n);
     // std::vector<std::vector<Node>> nodes;
 };
 

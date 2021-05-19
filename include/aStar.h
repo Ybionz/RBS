@@ -20,6 +20,10 @@ public:
     path_t search();
     std::function<bool(State *, State *)> getVisitedCompare();
 
+    template <typename Set>
+    void deleteStates(Set set);
+    path_t copyPath(path_t path);
+
     Node *start;
     Node *goal;
     Map *map;

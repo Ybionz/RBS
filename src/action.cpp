@@ -5,23 +5,23 @@ std::ostream &operator<<(std::ostream &out, const Action &action)
     switch (action.dir)
     {
     case Action::Direction::wait:
-        out << "wait";
+        out << "WAIT";
         break;
     case Action::Direction::north:
-        out << "north";
+        out << "NORTH";
         break;
     case Action::Direction::south:
-        out << "south";
+        out << "SOUTH";
         break;
     case Action::Direction::west:
-        out << "west";
+        out << "WEST";
         break;
     case Action::Direction::east:
-        out << "east";
+        out << "EAST";
         break;
 
     default:
-        out << "action";
+        out << "ACTION";
         break;
     }
     return out;
@@ -30,6 +30,11 @@ std::ostream &operator<<(std::ostream &out, const Action &action)
 bool Action::operator<(const Action &o) const
 {
     return dir < o.dir;
+};
+
+bool Action::operator==(const Action &o) const
+{
+    return dir == o.dir;
 };
 
 bool Action::operator>(const Action &o) const { return o < *this; }

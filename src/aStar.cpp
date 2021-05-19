@@ -28,6 +28,23 @@ std::function<bool(State *, State *)> AStar::getVisitedCompare()
     return visitedCompare;
 };
 
+template <typename Set>
+void AStar::deleteStates(Set set)
+{
+    std::for_each(set.begin(), set.end(), [](State *state) { delete state; });
+    set.clear();
+};
+
+path_t AStar::copyPath(path_t path)
+{
+    std::list<const State *> temp;
+    for (auto state : path)
+    {
+        temp.push_back(new State{*state});
+    };
+    return temp;
+};
+
 path_t AStar::search()
 {
     // auto visitedCompare{[](State *a, State *b) {
@@ -65,9 +82,14 @@ path_t AStar::search()
         nextState = open.extract(open.begin()).value();
         closed.insert(nextState);
 
-        if (nextState->atGoal())
+        if (nextState->atGoal(constraints))
         {
-            return nextState->getPath();
+
+            auto path = nextState->getPath();
+            auto cPath = copyPath(path);
+            deleteStates(open);
+            deleteStates(closed);
+            return cPath;
             // return temp;
         };
 
@@ -81,6 +103,8 @@ path_t AStar::search()
             }
         };
     };
+    deleteStates(open);
+    deleteStates(closed);
 
     std::list<const State *> failed{};
     return failed;

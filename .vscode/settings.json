@@ -48,6 +48,11 @@
         "bit": "cpp",
         "unordered_set": "cpp",
         "map": "cpp",
-        "set": "cpp"
+        "set": "cpp",
+        "chrono": "cpp",
+        "codecvt": "cpp",
+        "filesystem": "cpp",
+        "ratio": "cpp",
+        "iomanip": "cpp"
     }
 }

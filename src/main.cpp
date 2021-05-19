@@ -5,6 +5,8 @@
 #include <ctime>     // for std::time
 #include <set>       // for std::unordered_set
 #include <algorithm> // for std::max
+// #include <sys/time.h>
+// #include <sys/resource.h>
 
 #include "action.h"
 #include "aStar.h"
@@ -13,6 +15,8 @@
 #include "state.h"
 #include "typeAliases.h"
 #include "HLState.h"
+#include "cbs.h"
+#include "ruleRestrict.h"
 
 struct vertexCompare
 {
@@ -24,59 +28,113 @@ struct vertexCompare
 
 int main()
 {
-    int mapSize{48};
-    int numAgents{20};
+    int mapSize{10};
+    int numAgents{6};
     double objects{0.0};
-    Map m(mapSize, mapSize, objects);
-    tasks_t tasks = m.getValidTasks(numAgents);
+    Map m(mapSize, mapSize, objects, numAgents);
 
-    for (auto [agent, task] : tasks)
+    LightState testState{m.getNode(3, 3), Action(Action::Direction::south)};
+    // for (auto subState : rule.restrictions[testState])
+    // {
+    //     std::cout << *subState.getCurrent() << subState.getAction() << '\n';
+    // }
+
+    std::set<agentID_t> agents;
+    for (agentID_t agent{0}; agent < numAgents; agent++)
     {
-        std::cout << "Agent " << agent << " has task " << *task.first << " to " << *task.second << '\n';
-    }
+        agents.insert(agent);
+    };
+    RuleRestrict rule(agents, &m);
+    rule.makeDistance(2);
+    std::set<RuleRestrict> rules{rule};
+    m.setRules(rules);
+    // rlimit rlim{};
+    // auto out = getrlimit(0, &rlim);
 
-    HLState *initial = new HLState(tasks, &m);
+    // {
+    //     int n{100000000};
+    //     std::set<int> states;
+    //     for (int i{0}; i < n; i++)
+    //     {
+    //         states.insert(i);
+    //     }
+    //     std::cout << sizeof(states) << '\n';
 
-    std::multiset<HLState *, decltype([](HLState *a, HLState *b) { return (*a < *b); })> open;
-    std::multiset<HLState *, decltype([](HLState *a, HLState *b) { return (*a < *b); })> closed;
+    //     states.clear();
+    // }
+    // State *test = new State(m.getNode(0, 0), m.getNode(0, 0), 0, &m);
+    // // int *test = new int{10};
+    // std::cout << sizeof(test) << '\n';
+    // std::cout << sizeof(*test) << '\n';
 
-    open.insert(initial);
+    // delete test;
+    // std::cout << sizeof(test) << '\n';
+    // std::cout << sizeof(*test) << '\n';
+    // std::cout << "currentNode " << *test->currentNode << '\n';
 
-    HLState *nextState;
-    paths_t paths;
-    while (!open.empty())
-    {
-        nextState = open.extract(open.begin()).value();
-        closed.insert(nextState);
+    // std::cout << sizeof(HLState) << '\n';
 
-        if (nextState->isGoal())
-        {
-            paths = nextState->getPaths();
-            break;
-            // return temp;
-        };
+    // for (int i{0}; i < n; i++)
+    // {
+    //     states.insert(new State(m.getNode(0, 0), m.getNode(0, 0), 0, &m));
+    // }
 
-        for (HLState *s : nextState->getChildStates())
-        {
-            // if (visited.find(s) == visited.end())
-            if (open.find(s) == open.end() && closed.find(s) == closed.end())
-            {
-                // visited.insert(s);
-                open.insert(s);
-            }
-        };
-    }
-    std::cout << "Depth of goal is " << nextState->getG() << '\n';
-    for (auto [agent, path] : paths)
-    {
-        std::cout << "Agent " << agent << " has path: \n";
-        for (auto state : path)
-        {
-            std::cout << *state->currentNode << state->action << '\n';
-        }
-    }
+    // std::for_each(states.begin(), states.end(), [](State *state) { delete state; });
+    // states.clear();
 
-    std::cout << "Size of paths is " << paths.size() << '\n';
+    CBS cbs{&m, agents, rules};
+    paths_t paths = cbs.search();
+    m.saveLevel("test", paths);
+
+    // tasks_t tasks = m.getTasks(numAgents);
+
+    // for (auto [agent, task] : tasks)
+    // {
+    //     std::cout << "Agent " << agent << " has task " << *task.first << " to " << *task.second << '\n';
+    // }
+
+    // HLState *initial = new HLState(tasks, &m);
+
+    // std::multiset<HLState *, decltype([](HLState *a, HLState *b) { return (*a < *b); })> open;
+    // std::multiset<HLState *, decltype([](HLState *a, HLState *b) { return (*a < *b); })> closed;
+
+    // open.insert(initial);
+
+    // HLState *nextState;
+    // paths_t paths;
+    // while (!open.empty())
+    // {
+    //     nextState = open.extract(open.begin()).value();
+    //     closed.insert(nextState);
+
+    //     if (nextState->isGoal())
+    //     {
+    //         paths = nextState->getPaths();
+    //         break;
+    //         // return temp;
+    //     };
+
+    //     for (HLState *s : nextState->getChildStates())
+    //     {
+    //         // if (visited.find(s) == visited.end())
+    //         if (open.find(s) == open.end() && closed.find(s) == closed.end())
+    //         {
+    //             // visited.insert(s);
+    //             open.insert(s);
+    //         }
+    //     };
+    // }
+    // std::cout << "Depth of goal is " << nextState->getG() << '\n';
+    // for (auto [agent, path] : paths)
+    // {
+    //     std::cout << "Agent " << agent << " has path: \n";
+    //     for (auto state : path)
+    //     {
+    //         std::cout << *state->currentNode << state->action << '\n';
+    //     }
+    // }
+
+    // std::cout << "Size of paths is " << paths.size() << '\n';
     // auto tasks{m.getValidTasks(2)};
     // for (int i{0}; i < 2; ++i)
     // {
