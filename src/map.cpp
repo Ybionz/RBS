@@ -169,7 +169,7 @@ double Map::dist(Node start, Node goal, subtasks_t subtasks, int label)
     Node current{start};
     for (int i{label}; i < subtasks.size(); i++)
     {
-        const subtask_t  sub{subtasks[i]};
+        const subtask_t sub{subtasks[i]};
         auto [newDist, nextNode] = distTask(current, sub);
         dist += newDist + 1; // because the move takes a turn
         current = nextNode;
@@ -403,8 +403,8 @@ void Map::saveLevel(std::string name, paths_t paths)
     fs::path mapPath{path / "level.map"};
     std::ofstream scenFile(scenPath.string());
     std::ofstream mapFile(mapPath.string());
-    std::cout << "scen is open " << scenFile.is_open() << '\n';
-    std::cout << "map is open " << mapFile.is_open() << '\n';
+    // std::cout << "scen is open " << scenFile.is_open() << '\n';
+    // std::cout << "map is open " << mapFile.is_open() << '\n';
 
     scenFile << "Version 1\n";
     for (int i{0}; i < agents; i++)
@@ -446,7 +446,7 @@ void Map::saveLevel(std::string name, paths_t paths)
     if (paths.size() < 1)
         return;
 
-    fs::path solPath{path / "CBS.txt"};
+    fs::path solPath{path / "RBS.txt"};
     std::ofstream solFile(solPath.string());
 
     int maxLen{0};

@@ -46,6 +46,7 @@ int main()
     int numAgents{5};
     double objects{0.0};
     Map m(mapSize, mapSize, objects, numAgents);
+
     std::set<agentID_t> agents;
     for (agentID_t agent{0}; agent < numAgents; agent++)
     {
@@ -57,7 +58,7 @@ int main()
     m.setRules(rulesRS);
     CBS cbs{&m, agents, rulesRS};
     paths_t paths = cbs.search();
-    m.saveLevel("test", paths);
+    m.saveLevel("open", paths);
 
     // subtask_t sub1{Move(Action::Direction::south, m.getNode(0, 2))};
 
