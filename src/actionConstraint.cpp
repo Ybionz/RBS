@@ -17,10 +17,11 @@ bool ActionConstraint::operator<(const ActionConstraint &o) const
   else if (*v > *o.v)
     return false;
 
-  if (action < o.action)
-    return true;
+  return action < o.action;
+  // if (action < o.action)
+  //   return true;
 
-  return false;
+  // return false;
 };
 
 std::ostream &operator<<(std::ostream &out, const ActionConstraint &a)

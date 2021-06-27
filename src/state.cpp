@@ -1,30 +1,37 @@
 #include "state.h"
 
-State::State(Node *initial, Node *goal, int agent, Map *map)
+State::State(Node *initial, Node *goal, int agent, Map *map, subtasks_t _subtasks)
     : map{map},
+      m_parent{nullptr},
       initialNode{initial},
       currentNode{initial},
       goalNode{goal},
       agent{agent},
+      subtasks{_subtasks},
       g{0},
-      h{(*map).dist(*initial, *goal)},
+      h{(*map).dist(*initial, *goal, subtasks, subtaskLabel)},
       f{g + h},
       action{Action::wait},
-      isGoal{*currentNode == *goalNode},
-      m_parent{nullptr} {};
+      isGoal{subtaskLabel == subtasks.size() && *currentNode == *goalNode} {};
 
 State::State(const State &parent, Action action)
-    : map{parent.map},
+    : m_parent{&parent},
+      map{parent.map},
       currentNode{map->getNode(parent.currentNode + action)},
       initialNode{parent.initialNode},
       goalNode{parent.goalNode},
+      subtasks{parent.subtasks},
+      subtaskLabel{parent.subtaskLabel},
       agent{parent.agent},
       g{parent.g + 1.0},
-      h{(*parent.map).dist(*currentNode, *goalNode)},
+      h{(*parent.map).dist(*currentNode, *goalNode, subtasks, subtaskLabel)},
       f{g + h},
       action{action},
-      isGoal{*currentNode == *goalNode},
-      m_parent{&parent} {};
+      isGoal{subtaskLabel == subtasks.size() && *currentNode == *goalNode}
+{
+    if (updateSTLabel())
+        h = (*parent.map).dist(*currentNode, *goalNode, subtasks, subtaskLabel);
+};
 
 State::State(Node *current, const Action action)
     : currentNode{current},
@@ -60,23 +67,33 @@ bool State::atGoal(ACSet_t aCSet)
     if (aCSet.size() < 1)
         return isGoal;
 
-    if (aCSet.rbegin()->t > g)
+    if (aCSet.rbegin()->t >= g)
         return false;
     return isGoal;
 };
 
-std::set<State *> State::getChildStates(ACSet_t aCSet)
+std::set<State *> State::getChildStates(ACSet_t aCSet, std::set<RuleRequest> *reqRules)
 {
     std::set<State *> children;
     for (auto [a, n] : (*map).getNeighbours(currentNode))
     {
         bool actionPermitted{aCSet.find(ActionConstraint(a, static_cast<int>(g), currentNode)) == aCSet.end()};
-        // bool notWall{map->getNode(n)->getType() != Node::SpaceType::Wall};
+        if (reqRules != nullptr)
+        {
+            for (auto const &rule : *reqRules)
+            {
+                if (rule.isIllegal(Move(a, currentNode + a)))
+                    goto nextNeighbour; // continue on outer loop
+                if (rule.cantGetHelp(*(currentNode + a)))
+                    goto nextNeighbour; // continue on outer loop
+            }
+        }
         if (actionPermitted)
         {
             State *child = new State{*this, a};
             children.insert(child);
         }
+    nextNeighbour:;
     };
     return children;
 };
@@ -128,3 +145,24 @@ LightState State::getLS() const
 {
     return LightState(currentNode, action, agent, g);
 };
+
+Move State::getMove() const
+{
+    return Move(action, currentNode - action);
+}
+
+bool State::updateSTLabel()
+{
+    if (subtasks.size() == subtaskLabel)
+        return false;
+    // Move move{getMove()};
+    LightState ls{getLS()};
+    auto begin = subtasks[subtaskLabel].begin();
+    auto end = subtasks[subtaskLabel].end();
+    if (std::lower_bound(begin, end, ls) != end)
+    {
+        subtaskLabel++;
+        return true;
+    }
+    return false;
+}

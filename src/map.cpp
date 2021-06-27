@@ -112,9 +112,9 @@ bool Map::isInMap(int x, int y)
 
 bool Map::isInMap(Node *n) { return Map::isInMap(n->getX(), n->getY()); };
 
-std::set<std::pair<Action, Node *>> Map::_getNeighbours(Node *n)
+std::map<Action, Node *> Map::_getNeighbours(Node *n)
 {
-    std::set<std::pair<Action, Node *>> neighbours{};
+    std::map<Action, Node *> neighbours{};
     int x{n->getX()};
     int y{n->getY()};
     for (Action a : allActions)
@@ -122,14 +122,15 @@ std::set<std::pair<Action, Node *>> Map::_getNeighbours(Node *n)
         Node *neigh = n + a;
         if (isInMap(neigh) && getNode(neigh)->getType() != Node::SpaceType::Wall)
         {
-            neighbours.insert(std::pair<Action, Node *>{a, neigh});
+            neighbours[a] = neigh;
+            // neighbours.insert(std::pair<Action, Node *>{a, neigh});
         }
     }
 
     return neighbours;
 };
 
-std::set<std::pair<Action, Node *>> Map::getNeighbours(Node *n)
+std::map<Action, Node *> Map::getNeighbours(Node *n)
 {
     return neighbours[getNode(n)];
 };
@@ -146,14 +147,52 @@ void Map::findNeighbours()
     }
 };
 
-double Map::dist(Node n1, Node n2)
+std::pair<double, Node> Map::distTask(Node n, subtask_t subtask)
+{
+    LightState best;
+    double dist{static_cast<double>(rows * cols)};
+    for (auto l : subtask)
+    {
+        double newDist{distNode(n, *l.getMove().getPrev())};
+        if (newDist < dist)
+        {
+            dist = newDist;
+            best = l;
+        }
+    }
+    return std::pair<double, Node>{dist, *best.getCurrent()};
+}
+
+double Map::dist(Node start, Node goal, subtasks_t subtasks, int label)
+{
+    double dist{0};
+    Node current{start};
+    for (int i{label}; i < subtasks.size(); i++)
+    {
+        const subtask_t  sub{subtasks[i]};
+        auto [newDist, nextNode] = distTask(current, sub);
+        dist += newDist + 1; // because the move takes a turn
+        current = nextNode;
+    }
+    dist += distNode(current, goal);
+    return dist;
+};
+
+double Map::distNode(Node n1, Node n2)
 {
     int x{abs(n1.getX() - n2.getX())};
     int y{abs(n1.getY() - n2.getY())};
     return std::sqrt(x * x + y * y);
 };
 
-int Map::distMoves(Node n1, Node n2)
+int Map::distNodeMoves(Node n1, Node n2)
+{
+    int x{abs(n1.getX() - n2.getX())};
+    int y{abs(n1.getY() - n2.getY())};
+    return x + y;
+};
+
+int Map::distMoves(Node n1, Node n2, subtasks_t subtasks)
 {
     int x{abs(n1.getX() - n2.getX())};
     int y{abs(n1.getY() - n2.getY())};
@@ -339,9 +378,10 @@ void Map::newMap()
     initializeAreas();
 };
 
-void Map::setRules(std::set<RuleRestrict> _rulesRestrict)
+void Map::setRules(std::set<RuleRestrict> _rulesRestrict, std::set<RuleRequest> _rulesRequest)
 {
     rulesRestrict = _rulesRestrict;
+    rulesRequest = _rulesRequest;
     missions = getValidMissions(agents);
 }
 

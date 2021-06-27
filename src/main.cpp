@@ -7,16 +7,17 @@
 #include <algorithm> // for std::max
 // #include <sys/time.h>
 // #include <sys/resource.h>
+#include "typeAliases.h"
 
 #include "action.h"
 #include "aStar.h"
+#include "cbs.h"
+#include "HLState.h"
 #include "map.h"
 #include "node.h"
-#include "state.h"
-#include "typeAliases.h"
-#include "HLState.h"
-#include "cbs.h"
+#include "ruleRequest.h"
 #include "ruleRestrict.h"
+#include "state.h"
 
 struct vertexCompare
 {
@@ -26,28 +27,65 @@ struct vertexCompare
     };
 };
 
+subtasks_t getHelp(path_t path, RuleRequest rule)
+{
+    subtasks_t tasks{};
+    for (auto s : path)
+    {
+        LightState ls{s->getLS()};
+        auto help = rule.getRequest(ls);
+        // if(help.size()<1)
+        // tasks.push_back();
+    }
+    return tasks;
+}
+
 int main()
 {
     int mapSize{10};
-    int numAgents{6};
+    int numAgents{5};
     double objects{0.0};
     Map m(mapSize, mapSize, objects, numAgents);
-
-    LightState testState{m.getNode(3, 3), Action(Action::Direction::south)};
-    // for (auto subState : rule.restrictions[testState])
-    // {
-    //     std::cout << *subState.getCurrent() << subState.getAction() << '\n';
-    // }
-
     std::set<agentID_t> agents;
     for (agentID_t agent{0}; agent < numAgents; agent++)
     {
         agents.insert(agent);
     };
-    RuleRestrict rule(agents, &m);
-    rule.makeDistance(2);
-    std::set<RuleRestrict> rules{rule};
-    m.setRules(rules);
+    RuleRestrict ruleRS(agents, &m);
+    ruleRS.makeDistance(1);
+    std::set<RuleRestrict> rulesRS{ruleRS};
+    m.setRules(rulesRS);
+    CBS cbs{&m, agents, rulesRS};
+    paths_t paths = cbs.search();
+    m.saveLevel("test", paths);
+
+    // subtask_t sub1{Move(Action::Direction::south, m.getNode(0, 2))};
+
+    // subtasks_t subtasks{sub1};
+    // if (subtasks[0].contains(Move(Action::Direction::south, m.getNode(0, 2))))
+    //     std::cout << "yes\n";
+    // else
+    //     std::cout << "no:(\n";
+
+    // auto astar{AStar(m.getNode(0, 0), m.getNode(3, 0), 0, &m, ACSet_t{}, subtasks)};
+
+    // auto path = astar.search();
+    // paths_t pathstask{{0, path}};
+    // mission_t mis{m.getNode(0, 0), m.getNode(3, 0)};
+    // m.setMissions(missions_t{{0, mis}});
+    // m.saveLevel("tasktest", pathstask);
+
+    // RuleRequest ruleRQ(std::set<agentID_t>{0}, std::set<agentID_t>{1}, &m);
+    // ruleRQ.makeSokoban();
+
+    // std::set<RuleRequest> rulesRQ{ruleRQ};
+    // m.setRules(rulesRS, rulesRQ);
+
+    // auto pathsTemp = AStar(m.getNode(1, 1), m.getNode(1, 3), 0, &m, ACSet_t{}, subtasks_t{}, &rulesRQ).search();
+    // auto help = getHelp(pathsTemp, ruleRQ);
+
+    // auto pathHelper = AStar(m.getNode(0, 0), m.getNode(4, 0), 1, &m, ACSet_t{}, help).search();
+
     // rlimit rlim{};
     // auto out = getrlimit(0, &rlim);
 
@@ -82,9 +120,7 @@ int main()
     // std::for_each(states.begin(), states.end(), [](State *state) { delete state; });
     // states.clear();
 
-    CBS cbs{&m, agents, rules};
-    paths_t paths = cbs.search();
-    m.saveLevel("test", paths);
+    // CBS cbs{&m, agents, rulesRS, rulesRQ};
 
     // tasks_t tasks = m.getTasks(numAgents);
 

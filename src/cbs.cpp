@@ -1,9 +1,13 @@
 #include "cbs.h"
 
-CBS::CBS(Map *m, std::set<agentID_t> _agents, std::set<RuleRestrict> _rules)
+CBS::CBS(Map *m,
+         std::set<agentID_t> _agents,
+         std::set<RuleRestrict> _rulesRestrict,
+         std::set<RuleRequest> _rulesRequest)
     : map{m},
       agents{_agents},
-      rules{_rules} {};
+      rulesRestrict{_rulesRestrict},
+      rulesRequest{_rulesRequest} {};
 
 paths_t CBS::search()
 {
@@ -13,7 +17,7 @@ paths_t CBS::search()
     // missions_t missions{{0, first}, {1, second}};
     // map->setMissions(missions);
 
-    HLState *initial = new HLState(missions, map, rules);
+    HLState *initial = new HLState(missions, map, &rulesRestrict, &rulesRequest);
 
     std::multiset<HLState *, decltype([](HLState *a, HLState *b)
                                       { return (*a < *b); })>

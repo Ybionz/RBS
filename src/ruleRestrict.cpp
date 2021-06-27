@@ -8,9 +8,8 @@ RuleRestrict::RuleRestrict(std::set<agentID_t> _agents, Map *_map, int _count, T
 
 std::vector<LightState> RuleRestrict::getLSsforNode(Node node)
 {
-    auto neighbours = map->getNeighbours(&node);
     std::vector<LightState> temp;
-    for (auto [action, neigh] : neighbours)
+    for (auto [action, neigh] : map->getNeighbours(&node))
     {
         if (action.isWait())
             temp.push_back(LightState(map->getNode(&node), action));
@@ -33,7 +32,7 @@ void RuleRestrict::makeDistance(int dist)
     {
         for (auto [action, neigh] : map->getNeighbours(node))
         {
-            LightState current(node, action);
+            LightState current(node, action.opposite());
             std::set<Node> open;
             std::set<Node> closed;
             open.insert(*node);

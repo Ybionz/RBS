@@ -1,14 +1,15 @@
 #ifndef RULERESTRICT_H
 #define RULERESTRICT_H
 
-#include <set>
 #include <map>
+#include <set>
 
 #include "typeAliases.h"
+
 #include "actionConstraint.h"
-#include "state.h"
-#include "lightState.h"
 #include "map.h"
+#include "lightState.h"
+#include "state.h"
 
 class RuleRestrict
 {
@@ -20,7 +21,10 @@ public:
     };
     RuleRestrict(std::set<agentID_t> _agents, Map *_map, int _count = 1, Type _type = Type::distance);
 
-    std::vector<LightState> getRestrict(LightState state) { return restrictions[state]; };
+    // template <typename Iterator>
+    // std::pair<Iterator, Iterator> getRestrict2(LightState state) const { return std::pair<Iterator, Iterator>{restrictions.find(state)->second.begin(), restrictions[state].end()}; }
+
+    std::vector<LightState> getRestrict(LightState state) const { return restrictions.find(state)->second; };
 
     void makeDistance(int dist = 0);
     std::vector<LightState> getLSsforNode(Node node);

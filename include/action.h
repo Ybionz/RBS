@@ -15,13 +15,14 @@ public:
         west,
         Last
     };
+    Action(){};
     Action(Action::Direction dir) : dir{dir} {};
 
     Direction getDir() const { return dir; };
 
     Action opposite() const;
 
-    bool isWait() { return dir == Direction::wait; };
+    bool isWait() const { return dir == Direction::wait; };
     // const Action opposite();
 
     friend std::ostream &operator<<(std::ostream &out, const Action &action);

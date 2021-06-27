@@ -1,19 +1,13 @@
 #include "lightState.h"
 
 LightState::LightState(Node *_current, Action _action, agentID_t _agent, int _g)
-    : current{_current},
-      action{_action},
+    : move{Move(_action, _current)},
       g{_g},
       agent{_agent} {};
 
 bool LightState::operator<(const LightState &o) const
 {
-    if (*current < *o.current)
-        return true;
-    else if (*current > *o.current)
-        return false;
-
-    return action < o.action;
+    return move < o.move;
     // if (action < o.action)
     //     return true;
     // else if (action > o.action)
@@ -29,7 +23,7 @@ bool LightState::operator<(const LightState &o) const
 
 bool LightState::operator==(const LightState &o) const
 {
-    return (*current == *o.current && action == o.action); // && agent == o.agent);
+    return move == o.move; // && agent == o.agent);
     // if (*current < *o.current)
     //     return true;
     // else if (*current > *o.current)
@@ -48,4 +42,3 @@ bool LightState::operator==(const LightState &o) const
 
     // return agent < o.agent;
 };
-

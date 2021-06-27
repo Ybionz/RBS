@@ -1,6 +1,9 @@
 #include "HLState.h"
 
-HLState::HLState(missions_t missions, Map *map, std::set<RuleRestrict> _rules)
+HLState::HLState(missions_t missions,
+                 Map *map,
+                 std::set<RuleRestrict> *_rulesRestrict,
+                 std::set<RuleRequest> *_rulesRequest)
     : parent{nullptr},
       map{map},
       missions{missions},
@@ -9,14 +12,14 @@ HLState::HLState(missions_t missions, Map *map, std::set<RuleRestrict> _rules)
       g{0},
       foundConstraints{false},
       constraints{constraints_t{}},
-      searchSuccses{true},
       length{0},
-      rules{_rules}
+      rulesRequest{_rulesRequest},
+      rulesRestrict{_rulesRestrict}
 {
     findPaths();
 };
 
-HLState::HLState(const HLState &_parent, constraints_t _constraints)
+HLState::HLState(const HLState &_parent, constraints_t _constraints, subtasks_t _subtasks)
     : parent{&_parent},
       map{_parent.map},
       constraints{_parent.constraints},
@@ -25,9 +28,9 @@ HLState::HLState(const HLState &_parent, constraints_t _constraints)
       cost{0},
       g{_parent.g + 1},
       foundConstraints{false},
-      searchSuccses{true},
       length{_parent.length},
-      rules{_parent.rules}
+      rulesRequest{_parent.rulesRequest},
+      rulesRestrict{_parent.rulesRestrict}
 
 {
     addConstraints(_constraints);
@@ -43,7 +46,16 @@ void HLState::addConstraints(constraints_t newConstraints)
 {
     for (auto [agent, aCons] : newConstraints)
     {
-        constraints[agent].insert(aCons.begin(), aCons.end());
+        gotConstraint.insert(agent);
+        for (auto c : aCons)
+        {
+            auto temp = constraints[agent].insert(c);
+            if (!temp.second)
+            {
+                std::cout << "faild to insert\n";
+            }
+        }
+        // constraints[agent].insert(aCons.begin(), aCons.end());
     }
 }
 
@@ -70,7 +82,7 @@ void HLState::findPaths()
         // if no parent find new path for all agents with no constraints
         if (parent == nullptr)
         {
-            paths[agent] = AStar(mission.first, mission.second, agent, map).search();
+            paths[agent] = AStar(mission.first, mission.second, agent, map,ACSet_t{},subtasks_t{},rulesRequest).search();
             costs[agent] = paths[agent].size();
             // cost += paths[agent].size();
             length = std::max(static_cast<int>(paths[agent].size()), length);
@@ -79,7 +91,7 @@ void HLState::findPaths()
         else
         {
             // if no new constraint for this agent get path from parent
-            if (constraints.find(agent) == parent->constraints.find(agent))
+            if (!gotConstraint.contains(agent))
             {
                 paths_t pPaths = parent->paths;
                 auto pCosts = parent->costs;
@@ -90,7 +102,7 @@ void HLState::findPaths()
             }
             paths[agent] = AStar(mission.first, mission.second, agent, map, constraints[agent]).search();
             if (paths[agent].size() < 1)
-                searchSuccses = false;
+                searchSuccess = false;
             costs[agent] = paths[agent].size();
             length = std::max(static_cast<int>(paths[agent].size()), length);
         }
@@ -116,15 +128,17 @@ ACSet_t HLState::vertexToActionConstraints(int time, Node *vertex)
 template <typename Iterator>
 constraintSet_t HLState::getConstraintRestrict(LightState main, Iterator begin, Iterator end, std::multiset<LightState> states, int k)
 {
-    constraints_t mainAgentCon{{main.getAgent(), vertexToActionConstraints(main.getG() - 1, main.getCurrent())}};
+    ACSet_t acForMain{ActionConstraint(main.getAction(), main.getG() - 1, main.getCurrent() - main.getAction())};
+    constraints_t mainAgentCon{{main.getAgent(), acForMain}};
+    // constraints_t mainAgentCon{{main.getAgent(), vertexToActionConstraints(main.getG() - 1, main.getCurrent())}};
     constraintSet_t temp{mainAgentCon};
-    std::set<LightState> conStates;
+    std::vector<LightState> conStates;
     constraints_t others;
     while (begin != end)
     {
         LightState next{*begin};
         auto equal = states.equal_range(next);
-        conStates.insert(equal.first, equal.second);
+        conStates.insert(conStates.end(), equal.first, equal.second);
         begin++;
     }
     for (auto state : conStates)
@@ -195,6 +209,7 @@ constraintSet_t HLState::getConstraints()
 
     // statesAtTime: tiomestep, set of statesstatesEdgeCon[i].count(state)
     std::map<int, std::multiset<LightState>> statesAtTime;
+    std::map<int, std::vector<LightState>> statesAtTimeV;
     // std::map<int, std::multiset<const State *, decltype(edgeConSort)>> statesEdgeCon;
     // std::map<int, std::multiset<const State *,
     //                             vertexCompare>>
@@ -206,7 +221,12 @@ constraintSet_t HLState::getConstraints()
             // statesVertexCon[s->g].insert(s);
             // statesEdgeCon[s->g].insert(s);
             statesAtTime[s->g].insert(s->getLS());
+            statesAtTimeV[s->g].push_back(s->getLS());
         }
+    }
+    for (int i{0}; i < length; ++i)
+    {
+        std::sort(statesAtTimeV[i].begin(), statesAtTimeV[i].end());
     }
     // auto iter;
     // for each time step check if any conflicts occur
@@ -214,11 +234,13 @@ constraintSet_t HLState::getConstraints()
     {
         for (auto state : statesAtTime[i])
         {
-            auto sATbegin = statesAtTime[i].begin();
-            auto sATend = statesAtTime[i].end();
-            for (auto rule : rules)
+            auto sATbegin = statesAtTimeV[i].begin();
+            auto sATend = statesAtTimeV[i].end();
+            for (auto const &rule : *rulesRestrict)
             {
-                std::vector<LightState> inter;
+                if (!rule.agents.contains(state.getAgent()))
+                    continue;
+                std::vector<LightState> inter{};
                 // auto start = rule.restrictions[state].begin();
                 // auto end = rule.restrictions[state].end();
                 auto set = rule.getRestrict(state);

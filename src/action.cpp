@@ -44,7 +44,7 @@ Action Action::opposite() const
     switch (dir)
     {
     case Action::Direction::wait:
-        std::cout << "took opposite if wait\n";
+        // std::cout << "took opposite if wait\n";
         return Action(Direction::wait);
     case Action::Direction::north:
         return Action(Direction::south);

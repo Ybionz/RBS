@@ -16,9 +16,14 @@
 class HLState
 {
 public:
-    HLState(missions_t missions, Map *map, std::set<RuleRestrict> _rules);
+    HLState(missions_t missions,
+            Map *map,
+            std::set<RuleRestrict> *_rulesRestrict = nullptr,
+            std::set<RuleRequest> *_rulesRequest = nullptr);
 
-    HLState(const HLState &parent, constraints_t constraints);
+    HLState(const HLState &parent,
+            constraints_t constraints = constraints_t{},
+            subtasks_t _subtask = subtasks_t{});
 
     ACSet_t vertexToActionConstraints(int time, Node *vertex);
 
@@ -45,7 +50,7 @@ public:
     void addConstraints(constraints_t newConstraints);
     bool operator<(const HLState &o) const;
     int getG();
-    int getSearchSuccess() { return searchSuccses; };
+    int getSearchSuccess() { return searchSuccess; };
     int getLenght() { return length; };
 
 private:
@@ -58,11 +63,14 @@ private:
     constraintSet_t childConstraints;
     paths_t paths;
     int cost;
-    bool searchSuccses;
+    bool searchSuccess{true};
     bool foundConstraints;
     int length;
-    std::set<RuleRestrict> rules;
+    std::set<RuleRestrict> *rulesRestrict;
+    std::set<RuleRequest> *rulesRequest;
     std::map<agentID_t, int> costs = std::map<agentID_t, int>{};
+    std::set<agentID_t> gotConstraint;
+    std::map<agentID_t, subtasks_t> tasks;
     struct vertexCompare
     {
         bool operator()(const State *a, const State *b) const

@@ -22,6 +22,8 @@ namespace fs = std::filesystem;
 #include "action.h"
 #include "state.h"
 #include "ruleRestrict.h"
+#include "ruleRequest.h"
+#include "move.h"
 
 class Map
 {
@@ -42,7 +44,7 @@ public:
     void initializeNodes(int rows, int cols);
     void initializeAllActions();
     void initializeAreas();
-    void setRules(std::set<RuleRestrict> _rulesRestrict);
+    void setRules(std::set<RuleRestrict> _rulesRestrict, std::set<RuleRequest> _rulesRequest = std::set<RuleRequest>{});
 
     void setWalls(double wallDensity);
     bool setWall(int x, int y);
@@ -60,12 +62,17 @@ public:
     Node *getNode(Node *n) { return *nodes.find(n); };
     // Node getNodeP(int x, int y) { return nodes.find(Node(x, y)); };
 
-    std::set<std::pair<Action, Node *>> getNeighbours(Node *n);
+    std::map<Action, Node *> getNeighbours(Node *n);
     int getNumAreas() { return numAreas; };
     std::set<Action> getAllActions() { return allActions; };
 
-    double dist(Node n1, Node n2);
-    int distMoves(Node n1, Node n2);
+    double distNode(Node n1, Node n2);
+    int distNodeMoves(Node n1, Node n2);
+
+    std::pair<double, Node> distTask(Node n, subtask_t subtask);
+    int distMoves(Node n, subtask_t subtask);
+    double dist(Node n1, Node n2, subtasks_t subtasks = subtasks_t{}, int label = 0);
+    int distMoves(Node n1, Node n2, subtasks_t subtasks = subtasks_t{});
 
     bool isMissionValid(Node *start, Node *end);
     mission_t getMission(agentID_t agent) { return missions[agent]; };
@@ -90,16 +97,18 @@ private:
     double wallDensity;
     std::mt19937 mersenne;
     int agents;
-    std::map<Node *, std::set<std::pair<Action, Node *>>> neighbours;
+    std::map<Node *, std::map<Action, Node *>> neighbours;
+    // std::map<Node *, std::set<std::pair<Action, Node *>>> neighbours;
     std::set<Action> allActions;
     missions_t missions;
     std::set<Node *, Sorter> initialPos;
     std::set<Node *, Sorter> endPos;
     std::set<Node *, Sorter> nodes;
     std::set<RuleRestrict> rulesRestrict;
+    std::set<RuleRequest> rulesRequest;
 
     int numAreas{1};
-    std::set<std::pair<Action, Node *>> _getNeighbours(Node *n);
+    std::map<Action, Node *> _getNeighbours(Node *n);
     // std::vector<std::vector<Node>> nodes;
 };
 
